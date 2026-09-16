@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: shopkart_postgres
+    env_file: .env
+    ports:
+      - "5432:5432"   # host_port:container_port
+    volumes:
+      - pg_data:/var/lib/postgresql/data   # keeps data even if container stops
+
+  adminer:
+    image: adminer
+    container_name: shopkart_adminer
+    ports:
+      - "8080:8080"   # simple web UI to browse the database
+    depends_on:
+      - postgres
+
+volumes:
+  pg_data:
