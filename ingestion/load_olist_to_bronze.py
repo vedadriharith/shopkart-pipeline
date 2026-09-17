@@ -1,7 +1,5 @@
 """Load raw Olist CSV files into the bronze schema (full refresh)."""
 
-import csv
-import io
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -10,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 from sqlalchemy import text
 
-from db import PROJECT_ROOT, get_engine
+from db import PROJECT_ROOT, get_engine, copy_insert
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 log = logging.getLogger(__name__)
@@ -31,17 +29,6 @@ FILE_TO_TABLE = {
     "olist_sellers_dataset.csv": "sellers",
     "product_category_name_translation.csv": "product_category_translation",
 }
-
-def copy_insert(table, conn, keys, data_iter):
-    """Bulk insert rows using Postgres COPY, which is much faster than INSERT."""
-    buffer = io.StringIO()
-    csv.writer(buffer).writerows(data_iter)
-    buffer.seek(0)
-
-    columns = ", ".join(f'"{key}"' for key in keys)
-    target = f'"{table.schema}"."{table.name}"'
-    with conn.connection.cursor() as cursor:
-        cursor.copy_expert(f"COPY {target} ({columns}) FROM STDIN WITH CSV", buffer)
 
 def load_file(engine, file_name: str, table_name: str, batch_id: str) -> None:
     """Load one CSV file into bronze as all-text columns, then verify row counts."""

@@ -2,6 +2,8 @@
 
 import os
 from pathlib import Path
+import csv
+import io
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -21,3 +23,14 @@ def get_engine() -> Engine:
 
     url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
     return create_engine(url)
+
+def copy_insert(table, conn, keys, data_iter):
+    """Bulk insert rows using Postgres COPY, which is much faster than INSERT."""
+    buffer = io.StringIO()
+    csv.writer(buffer).writerows(data_iter)
+    buffer.seek(0)
+
+    columns = ", ".join(f'"{key}"' for key in keys)
+    target = f'"{table.schema}"."{table.name}"'
+    with conn.connection.cursor() as cursor:
+        cursor.copy_expert(f"COPY {target} ({columns}) FROM STDIN WITH CSV", buffer)
