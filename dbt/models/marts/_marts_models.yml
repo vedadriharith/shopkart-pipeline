@@ -15,3 +15,47 @@ models:
       - name: is_valid_for_revenue
         data_tests:
           - not_null
+      - name: customer_unique_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_unique_id
+
+  - name: dim_customers
+    description: One row per real customer (customer_unique_id).
+    columns:
+      - name: customer_unique_id
+        data_tests:
+          - unique
+          - not_null
+      - name: lifetime_value
+        data_tests:
+          - not_null
+
+  - name: dim_products
+    description: One row per product.
+    columns:
+      - name: product_id
+        data_tests:
+          - unique
+          - not_null
+      - name: category
+        data_tests:
+          - not_null
+
+  - name: mart_daily_revenue
+    description: Daily KPIs for valid orders.
+    columns:
+      - name: order_date
+        data_tests:
+          - unique
+          - not_null
+
+  - name: mart_category_performance
+    description: Revenue and volume per product category for valid orders.
+    columns:
+      - name: category
+        data_tests:
+          - unique
+          - not_null
