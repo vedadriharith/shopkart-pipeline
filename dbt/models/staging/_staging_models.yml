@@ -1,0 +1,100 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: One row per order, historical Olist and live ShopKart orders combined.
+    columns:
+      - name: order_id
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: is_missing_customer
+        data_tests:
+          - not_flagged:
+              config:
+                severity: warn
+      - name: order_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["created", "approved", "invoiced", "processing",
+                         "shipped", "delivered", "canceled", "unavailable"]
+      - name: purchased_at
+        data_tests:
+          - not_null
+
+  - name: stg_order_items
+    description: One row per (order_id, order_item_id).
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: ["order_id", "order_item_id"]
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+      - name: product_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+      - name: is_negative_price
+        data_tests:
+          - not_flagged:
+              config:
+                severity: warn
+
+  - name: stg_order_payments
+    description: One row per (order_id, payment_sequential).
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: ["order_id", "payment_sequential"]
+    columns:
+      - name: order_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+      - name: is_unknown_payment_type
+        data_tests:
+          - not_flagged:
+              config:
+                severity: warn
+
+  - name: stg_customers
+    description: One row per customer_id (per-order ID in Olist).
+    columns:
+      - name: customer_id
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_unique_id
+        data_tests:
+          - not_null
+
+  - name: stg_products
+    columns:
+      - name: product_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: stg_sellers
+    columns:
+      - name: seller_id
+        data_tests:
+          - unique
+          - not_null

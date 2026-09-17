@@ -15,5 +15,10 @@ models:
       +schema: silver
       +materialized: view
 
+data_tests:
+  shopkart:
+    +store_failures: true
+    +schema: audit
+
 vars:
   accepted_payment_types: ["credit_card", "boleto", "voucher", "debit_card", "not_defined"]
