@@ -14,3 +14,6 @@ models:
     staging:
       +schema: silver
       +materialized: view
+
+vars:
+  accepted_payment_types: ["credit_card", "boleto", "voucher", "debit_card", "not_defined"]
