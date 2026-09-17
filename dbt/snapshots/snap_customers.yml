@@ -1,0 +1,9 @@
+snapshots:
+  - name: snap_customers
+    description: SCD Type 2 history of customer location changes.
+    relation: ref('stg_customers')
+    config:
+      schema: snapshots
+      unique_key: customer_id
+      strategy: check
+      check_cols: ["zip_code_prefix", "city", "state"]
