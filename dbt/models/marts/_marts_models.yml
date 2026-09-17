@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: One row per order with item, payment, delivery and data-quality metrics.
+    columns:
+      - name: order_id
+        description: Primary key. A duplicate here means a fan-out join bug.
+        data_tests:
+          - unique
+          - not_null
+      - name: order_total
+        data_tests:
+          - not_null
+      - name: is_valid_for_revenue
+        data_tests:
+          - not_null
