@@ -1,0 +1,16 @@
+name: shopkart
+version: "1.0.0"
+config-version: 2
+profile: shopkart
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  shopkart:
+    staging:
+      +schema: silver
+      +materialized: view
