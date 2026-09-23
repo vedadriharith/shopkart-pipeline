@@ -26,3 +26,4 @@ data_tests:
 
 vars:
   accepted_payment_types: ["credit_card", "boleto", "voucher", "debit_card", "not_defined"]
+  incremental_lookback_hours: 1

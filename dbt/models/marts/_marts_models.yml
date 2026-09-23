@@ -59,3 +59,17 @@ models:
         data_tests:
           - unique
           - not_null
+  
+  - name: fct_order_items
+    description: One row per order item, built incrementally on ingested_at.
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: ["order_id", "order_item_id"]
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+      - name: item_total
+        data_tests:
+          - not_null
