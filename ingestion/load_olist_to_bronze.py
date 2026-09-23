@@ -1,3 +1,35 @@
+"""Load raw Olist CSV files into the bronze schema (full refresh)."""
+
+import logging
+import uuid
+from datetime import datetime, timezone
+
+import pandas as pd
+from sqlalchemy import inspect, text
+
+from db import PROJECT_ROOT, copy_insert, get_engine
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
+log = logging.getLogger(__name__)
+
+RAW_DIR = PROJECT_ROOT / "data" / "raw" / "olist"
+CHUNK_SIZE = 100_000
+SCHEMA = "bronze"
+
+# Map each source CSV file to its bronze table name
+FILE_TO_TABLE = {
+    "olist_customers_dataset.csv": "customers",
+    "olist_geolocation_dataset.csv": "geolocation",
+    "olist_orders_dataset.csv": "orders",
+    "olist_order_items_dataset.csv": "order_items",
+    "olist_order_payments_dataset.csv": "order_payments",
+    "olist_order_reviews_dataset.csv": "order_reviews",
+    "olist_products_dataset.csv": "products",
+    "olist_sellers_dataset.csv": "sellers",
+    "product_category_name_translation.csv": "product_category_translation",
+}
+
+
 def load_file(engine, file_name: str, table_name: str, batch_id: str) -> None:
     """Full-refresh one CSV into bronze, then verify row counts.
 
@@ -48,3 +80,22 @@ def load_file(engine, file_name: str, table_name: str, batch_id: str) -> None:
     log.info(f"{status:8} | {SCHEMA}.{table_name:30} | csv={csv_rows:>9,} | db={db_rows:>9,}")
     if status == "MISMATCH":
         raise ValueError(f"Row count mismatch for {table_name}")
+
+
+def main() -> None:
+    engine = get_engine()
+    batch_id = str(uuid.uuid4())
+    log.info(f"Starting bronze load, batch_id={batch_id}")
+
+    with engine.begin() as conn:
+        for schema in ("bronze", "silver", "gold"):
+            conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema}"))
+
+    for file_name, table_name in FILE_TO_TABLE.items():
+        load_file(engine, file_name, table_name, batch_id)
+
+    log.info("Bronze load finished successfully")
+
+
+if __name__ == "__main__":
+    main()
